@@ -1,4 +1,9 @@
-export const generateSpeech = async (text, voiceId, apiKey) => {
+export const generateSpeech = async (text, voiceId) => {
+  const apiKey = import.meta.env.VITE_ELEVENLABS_API_KEY;
+  if (!apiKey) {
+    throw new Error('ElevenLabs API key není nastaven');
+  }
+
   const response = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
     {
@@ -21,7 +26,9 @@ export const generateSpeech = async (text, voiceId, apiKey) => {
   );
 
   if (!response.ok) {
-    throw new Error('Failed to generate speech');
+    const errorText = await response.text();
+    console.error('ElevenLabs API Error:', errorText);
+    throw new Error('Chyba při generování řeči');
   }
 
   return await response.blob();

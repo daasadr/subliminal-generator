@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { fetchVoices } from '../../services/elevenLabsService';
 
-export const VoiceSelector = () => {
+export const VoiceSelector = ({ selectedVoice, onVoiceSelect }) => {
   const [voices, setVoices] = useState([]);
-  const [selectedVoice, setSelectedVoice] = useState('');
   const [voiceSettings, setVoiceSettings] = useState({
     rate: 0.9,
     pitch: 1.0
@@ -15,23 +14,23 @@ export const VoiceSelector = () => {
         const availableVoices = await fetchVoices();
         setVoices(availableVoices);
         if (availableVoices.length) {
-          setSelectedVoice(availableVoices[0].voice_id);
+          onVoiceSelect(availableVoices[0].voice_id);
         }
       } catch (error) {
         console.error('Failed to load voices:', error);
       }
     };
     loadVoices();
-  }, []);
+  }, [onVoiceSelect]);
 
   return (
     <div className="voice-controls">
       <div className="voice-selection">
         <label htmlFor="voiceSelect">Vyberte hlas:</label>
-        <select 
-          id="voiceSelect" 
+        <select
+          id="voiceSelect"
           value={selectedVoice}
-          onChange={(e) => setSelectedVoice(e.target.value)}
+          onChange={(e) => onVoiceSelect(e.target.value)}
         >
           {voices.map(voice => (
             <option key={voice.voice_id} value={voice.voice_id}>
@@ -40,7 +39,6 @@ export const VoiceSelector = () => {
           ))}
         </select>
       </div>
-
       <div className="voice-settings">
         <div className="setting">
           <label htmlFor="rateRange">Rychlost řeči:</label>

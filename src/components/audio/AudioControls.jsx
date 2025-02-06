@@ -1,32 +1,28 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { VoiceSelector } from './VoiceSelector';
+import { LayerControls } from './LayerControls';
 import { AudioPlayer } from './AudioPlayer';
 import { useVoice } from '../../hooks/useVoice';
 import { useApp } from '../../context/AppContext';
-import { Button } from '../common/Button';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
 export const AudioControls = () => {
   const { affirmations } = useApp();
-  const { audioUrl, isGenerating, generateAudio } = useVoice();
-  const [selectedVoiceId, setSelectedVoiceId] = useState('');
-  const [voiceSettings, setVoiceSettings] = useState({
-    rate: 0.9,
-    pitch: 1.0
-  });
+  const { audioUrl, audioBlob, isGenerating, generateAudio } = useVoice();
+  const [selectedVoiceId, setSelectedVoiceId] = useState(''); // Přidáno
 
   const handleGenerateAudio = async () => {
-    if (!affirmations.length || !selectedVoiceId) return;
-
+    if (!affirmations?.length || !selectedVoiceId) return;
+    
     try {
-      await generateAudio(
+      const audioBlob = await generateAudio(
         affirmations.join('. '),
-        selectedVoiceId,
-        voiceSettings
+        selectedVoiceId
       );
+      
+      return audioBlob;
     } catch (error) {
       console.error('Error generating audio:', error);
-      alert('Pokus o generování audia selhal');
     }
   };
 
@@ -35,21 +31,24 @@ export const AudioControls = () => {
       <VoiceSelector
         selectedVoice={selectedVoiceId}
         onVoiceSelect={setSelectedVoiceId}
-        voiceSettings={voiceSettings}
-        onSettingsChange={setVoiceSettings}
       />
       
-      <Button
+      <button
         onClick={handleGenerateAudio}
-        disabled={!affirmations.length || !selectedVoiceId || isGenerating}
-        variant="primary"
+        disabled={!affirmations?.length || !selectedVoiceId || isGenerating}
+        className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300 mt-4"
       >
-        Přehrát afirmace
-      </Button>
+        {isGenerating ? 'Generuji...' : 'Generovat audio'}
+      </button>
 
       {isGenerating && <LoadingSpinner />}
       
-      {audioUrl && <AudioPlayer audioUrl={audioUrl} />}
+      {audioUrl && (
+        <>
+          <AudioPlayer audioUrl={audioUrl} />
+          <LayerControls audioBlob={audioBlob} /> {/* Opraveno */}
+        </>
+      )}
     </div>
   );
 };

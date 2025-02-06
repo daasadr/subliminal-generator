@@ -1,28 +1,23 @@
 import { useState } from 'react';
+import { generateSpeech } from '../services/elevenLabsService';
 
 export const useVoice = () => {
   const [audioUrl, setAudioUrl] = useState(null);
+  const [audioBlob, setAudioBlob] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState(null);
 
-  const generateAudio = async (text, voiceId, settings = {}) => {
+  const generateAudio = async (text, voiceId) => {
     setIsGenerating(true);
-    setError(null);
 
     try {
-      const audioBlob = await generateSpeech(text, voiceId, {
-        ...settings,
-        stability: 0.5,
-        similarity_boost: 0.75,
-        style: 0.5,
-        use_speaker_boost: true
-      });
-      const url = URL.createObjectURL(audioBlob);
+      const blob = await generateSpeech(text, voiceId);
+      const url = URL.createObjectURL(blob);
       setAudioUrl(url);
-      return url;
-    } catch (err) {
-      setError(err.message);
-      throw err;
+      setAudioBlob(blob);
+      return blob;  // Vracíme blob pro použití v LayerControls
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
     } finally {
       setIsGenerating(false);
     }
@@ -30,8 +25,8 @@ export const useVoice = () => {
 
   return {
     audioUrl,
+    audioBlob,
     isGenerating,
-    error,
     generateAudio
   };
 };
